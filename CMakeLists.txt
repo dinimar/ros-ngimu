@@ -124,15 +124,15 @@ include_directories(
 
 
 ## Declare a C++ library
-# add_library(Osc99 SHARED
-#   src/Osc99/OscAddress.c
-#   src/Osc99/OscBundle.c
-#   src/Osc99/OscCommon.c
-#   src/Osc99/OscError.c
-#   src/Osc99/OscMessage.c
-#   src/Osc99/OscPacket.c
-#   src/Osc99/OscSlip.c
-# )
+add_library(Osc99 SHARED
+  src/Osc99/OscAddress.c
+  src/Osc99/OscBundle.c
+  src/Osc99/OscCommon.c
+  src/Osc99/OscError.c
+  src/Osc99/OscMessage.c
+  src/Osc99/OscPacket.c
+  src/Osc99/OscSlip.c
+)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -142,7 +142,7 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(ngimu_node src/node.cc src/NgimuReceive.cpp 
+add_executable(ngimu_node src/node.cc src/NgimuReceive.cc
   src/Osc99/OscAddress.c
   src/Osc99/OscBundle.c
   src/Osc99/OscCommon.c

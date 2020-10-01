@@ -21,6 +21,8 @@ int mSerialPort = -1;
 void ngimuSensorsCallback(const NgimuSensors ngimuSensors)
 {
     sensor_msgs::Imu imuData;
+    // set time
+    imuData.header.stamp = ros::Time::now();
 
     // accelerometer
     imuData.linear_acceleration.x = ngimuSensors.accelerometerX;
@@ -97,7 +99,6 @@ void receiveImu()
 
 }
 
-#include <vector>
 int main(int argc, char ** argv)
 {
     ros::init( argc, argv, "ngimu");
