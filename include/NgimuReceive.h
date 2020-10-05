@@ -57,6 +57,15 @@ typedef struct {
     float yaw;
 } NgimuEuler;
 
+/**
+ * @brief Timestamp and argument values for "/temperature" message.
+ */
+typedef struct {
+    OscTimeTag timestamp;
+    float temp1;
+    float temp2;
+} NgimuTemperature;
+
 //------------------------------------------------------------------------------
 // Function prototypes
 
@@ -65,6 +74,7 @@ void NgimuReceiveSetReceiveErrorCallback(void (*newReceiveErrorCallback)(const c
 void NgimuReceiveSetSensorsCallback(void (*newSensorsCallback)(const NgimuSensors ngimuSensors));
 void NgimuReceiveSetQuaternionCallback(void (*newQuaternionCallback)(const NgimuQuaternion ngimuQuaternion));
 void NgimuReceiveSetEulerCallback(void (*newEulerCallback)(const NgimuEuler ngimuEuler));
+void NgimuReceiveSetTemperatureCallback(void (*newTemperatureCallback)(const NgimuTemperature ngimuEuler));
 void NgimuReceiveProcessSerialByte(const char byte);
 void NgimuReceiveProcessUdpPacket(const char * const source, const size_t sourceSize);
 

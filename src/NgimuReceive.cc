@@ -20,6 +20,7 @@ static void (*receiveErrorCallback)(const char* const errorMessage);
 static void (*sensorsCallback)(const NgimuSensors ngimuSensors);
 static void (*quaternionCallback)(const NgimuQuaternion ngimuQuaternion);
 static void (*eulerCallback)(const NgimuEuler ngimuEuler);
+static void (*temperatureCallback)(const NgimuTemperature ngimuTemperature);
 
 //------------------------------------------------------------------------------
 // Function prototypes
@@ -30,6 +31,7 @@ static OscError ProcessAddress(const OscTimeTag * const oscTimeTag, OscMessage *
 static OscError ProcessSensors(const OscTimeTag * const oscTimeTag, OscMessage * const oscMessage);
 static OscError ProcessQuaternion(const OscTimeTag * const oscTimeTag, OscMessage * const oscMessage);
 static OscError ProcessEuler(const OscTimeTag * const oscTimeTag, OscMessage * const oscMessage);
+static OscError ProcessTemperature(const OscTimeTag * const oscTimeTag, OscMessage * const oscMessage);
 
 //------------------------------------------------------------------------------
 // Functions
@@ -74,6 +76,15 @@ void NgimuReceiveSetQuaternionCallback(void (*newQuaternionCallback)(const Ngimu
 void NgimuReceiveSetEulerCallback(void (*newEulerCallback)(const NgimuEuler ngimuEuler)) {
     eulerCallback = newEulerCallback;
 }
+
+/**
+ * @brief Sets receive "/temperature" callback function.
+ * @param newTemperatureCallback "/temperature" callback function.
+ */
+void NgimuReceiveSetTemperatureCallback(void (*newTemperatureCallback)(const NgimuTemperature ngimuEuler)) {
+    temperatureCallback = newTemperatureCallback;
+}
+
 
 /**
  * @brief Process byte received from NGIMU via a serial communication channel.
@@ -139,6 +150,9 @@ static OscError ProcessAddress(const OscTimeTag * const oscTimeTag, OscMessage *
     }
     if (OscAddressMatch(oscMessage->oscAddressPattern, "/euler")) {
         return ProcessEuler(oscTimeTag, oscMessage);
+    }
+    if (OscAddressMatch(oscMessage->oscAddressPattern, "/temperature")) {
+        return ProcessTemperature(oscTimeTag, oscMessage);
     }
 
     // OSC address not recognised
@@ -318,6 +332,41 @@ static OscError ProcessEuler(const OscTimeTag * const oscTimeTag, OscMessage * c
 
     // Callback
     eulerCallback(ngimuEuler);
+    return OscErrorNone;
+}
+
+/**
+ * @brief Process "/temperature" message.
+ * @param oscTimeTag OSC time tag associated with message.
+ * @param oscMessage Address of OSC message.
+ * @return Error code (0 if successful).
+ */
+static OscError ProcessTemperature(const OscTimeTag * const oscTimeTag, OscMessage * const oscMessage) {
+
+    // Do nothing if no callback assigned
+    if (temperatureCallback == NULL) {
+        return OscErrorNone;
+    }
+
+    // Get timestamp
+    NgimuTemperature ngimuTemperature;
+    ngimuTemperature.timestamp = *oscTimeTag;
+
+    // Get roll
+    OscError oscError;
+    oscError = OscMessageGetArgumentAsFloat32(oscMessage, &ngimuTemperature.temp1);
+    if (oscError != OscErrorNone) {
+        return oscError;
+    }
+
+    // Get pitch
+    oscError = OscMessageGetArgumentAsFloat32(oscMessage, &ngimuTemperature.temp2);
+    if (oscError != OscErrorNone) {
+        return oscError;
+    }
+
+    // Callback
+    temperatureCallback(ngimuTemperature);
     return OscErrorNone;
 }
 

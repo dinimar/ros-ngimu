@@ -3,6 +3,7 @@
 //
 #include <ros/ros.h>
 #include <sensor_msgs/Imu.h>
+#include <sensor_msgs/Temperature.h>
 #include "NgimuReceive.h"
 #include <fcntl.h> // Contains file controls like O_RDWR
 #include <errno.h> // Error integer and strerror() function
@@ -15,14 +16,19 @@
 #include <stdio.h>
 #include <string.h>
 
-ros::Publisher pub;
+ros::Publisher imuPub;
+ros::Publisher accelTempPub;
+ros::Publisher gyroTempPub;
 int mSerialPort = -1;
 
 void ngimuSensorsCallback(const NgimuSensors ngimuSensors)
 {
     sensor_msgs::Imu imuData;
+
     // set time
     imuData.header.stamp = ros::Time::now();
+
+    // ROS_INFO("Sensors time - %", ngimuSensors.timestamp)
 
     // accelerometer
     imuData.linear_acceleration.x = ngimuSensors.accelerometerX;
@@ -33,8 +39,29 @@ void ngimuSensorsCallback(const NgimuSensors ngimuSensors)
     imuData.angular_velocity.y = ngimuSensors.gyroscopeY;
     imuData.angular_velocity.z = ngimuSensors.gyroscopeZ;
 
-    pub.publish(imuData);
+    imuPub.publish(imuData);
 };
+
+
+void ngimuTemperatureCallback(const NgimuTemperature ngimuTemperature)
+{
+    sensor_msgs::Temperature accelTemp;
+    sensor_msgs::Temperature gyroTemp;
+
+    // set time
+    ros::Time currTime = ros::Time::now();
+    accelTemp.header.stamp = currTime;
+    gyroTemp.header.stamp = currTime;
+
+
+    // set temperature
+    accelTemp.temperature = ngimuTemperature.temp1;
+    gyroTemp.temperature = ngimuTemperature.temp2;
+
+    accelTempPub.publish(accelTemp);
+    gyroTempPub.publish(gyroTemp);
+}
+
 
 void initComPort()
 {
@@ -103,7 +130,9 @@ int main(int argc, char ** argv)
 {
     ros::init( argc, argv, "ngimu");
     ros::NodeHandle n;
-    pub = n.advertise<sensor_msgs::Imu>("/ngimu/imu", 400);
+    imuPub = n.advertise<sensor_msgs::Imu>("/ngimu/imu", 400);
+    accelTempPub = n.advertise<sensor_msgs::Temperature>("/ngimu/accel/temperature", 400);
+    gyroTempPub = n.advertise<sensor_msgs::Temperature>("/ngimu/gyro/temperature", 400);
 
     initComPort();
 
@@ -113,6 +142,7 @@ int main(int argc, char ** argv)
     // init IMU sensor
     NgimuReceiveInitialise();
     NgimuReceiveSetSensorsCallback(ngimuSensorsCallback);
+    NgimuReceiveSetTemperatureCallback(ngimuTemperatureCallback);
     
     ros::spin();
 }
